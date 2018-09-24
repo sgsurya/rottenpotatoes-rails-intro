@@ -12,24 +12,43 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings = Movie.ratings #Get all ratings
-    if(params[:ratings] == nil) 
-      @checked_ratings = @all_ratings
+    req = false
+    if(params[:order])
+      @order = params[:order]
+    elsif(session[:order])
+      @order = session[:order]
+      req = true
+    end
+    
+    if(params[:ratings])
+      @checked_ratings = params[:ratings]
+    elsif(session[:ratings])
+      @checked_ratings = session[:ratings]
+      req = true
     else
-      @checked_ratings = params[:ratings].keys
+      @all_ratings.each do |rating|
+        (@checked_ratings ||= {}) [rating]=1
+      end
     end
-    if(session[:ratings] != params[:ratings] && params[:ratings]!=nil) #Store ratings in session
-      session[:ratings] = params[:ratings]
-    elsif(session[:ratings]!=nil)
-      @checked_ratings = session[:ratings].keys
+    
+    session[:order] = @order
+    session[:ratings] = @checked_ratings
+    
+    if req
+      redirect_to movies_path(:order => @order, :ratings => @checked_ratings)
     end
+    
+    #Filter ratings
     if (session[:ratings] != nil)
-      @movies = Movie.where(rating: session[:ratings].keys) #Filter based on ratings stored in session
+      @movies = Movie.where(rating: @checked_ratings.keys) #Filter based on ratings stored in session
     else
       @movies = Movie.all
     end
-    if(params[:order] == :title.to_s)
+    
+    #Sort the results based on sort parameters
+    if(@order == :title.to_s)
       @movies = @movies.order(:title).all
-    elsif (params[:order] == :release_date.to_s)
+    elsif (@order == :release_date.to_s)
       @movies = @movies.order(:release_date).all
     end
   end
