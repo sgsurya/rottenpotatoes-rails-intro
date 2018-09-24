@@ -11,12 +11,26 @@ class MoviesController < ApplicationController
   end
 
   def index
-    if(params[:order] == :title.to_s)
-      @movies = Movie.order(:title).all
-    elsif (params[:order] == :release_date.to_s)
-      @movies = Movie.order(:release_date).all
+    @all_ratings = Movie.ratings #Get all ratings
+    if(params[:ratings] == nil) 
+      @checked_ratings = @all_ratings
+    else
+      @checked_ratings = params[:ratings].keys
+    end
+    if(session[:ratings] != params[:ratings] && params[:ratings]!=nil) #Store ratings in session
+      session[:ratings] = params[:ratings]
+    else
+      @checked_ratings = session[:ratings].keys
+    end
+    if (session[:ratings] != nil)
+      @movies = Movie.where(rating: session[:ratings].keys) #Filter based on ratings stored in session
     else
       @movies = Movie.all
+    end
+    if(params[:order] == :title.to_s)
+      @movies = @movies.order(:title).all
+    elsif (params[:order] == :release_date.to_s)
+      @movies = @movies.order(:release_date).all
     end
   end
 
