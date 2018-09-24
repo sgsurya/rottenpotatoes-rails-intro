@@ -19,7 +19,7 @@ class MoviesController < ApplicationController
     end
     if(session[:ratings] != params[:ratings] && params[:ratings]!=nil) #Store ratings in session
       session[:ratings] = params[:ratings]
-    else
+    elsif(session[:ratings]!=nil)
       @checked_ratings = session[:ratings].keys
     end
     if (session[:ratings] != nil)
